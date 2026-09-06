@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#7c3aed">
+<meta name="description" content="Coiso de numerar, uma calculadora científica neon.">
+<link rel="manifest" href="manifest.json">
+<title>coiso de numerar</title>
+<style>
+:root{--p:#7c3aed;--pd:#160b2b;--pm:#3b176d;--g:#b8ff3d;--gd:#507d0b;--bg:#08060d;--w:#f5f3ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:16px;background:radial-gradient(circle at 15% 15%,#54209a 0,transparent 35%),radial-gradient(circle at 85% 85%,#3b6500 0,transparent 30%),linear-gradient(135deg,#050308,#160b2b);font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;color:var(--w)}
+.calc{width:min(460px,100%);background:linear-gradient(145deg,#241044,#0c0715);border:2px solid var(--p);border-radius:26px;padding:18px;box-shadow:0 0 22px #7c3aed88,0 0 60px #b8ff3d22}
+.title{color:var(--g);font-weight:bold;letter-spacing:3px;font-size:14px;margin:2px 0 12px;text-shadow:0 0 10px var(--g)}
+#display{width:100%;height:76px;background:#050408;border:2px solid var(--gd);border-radius:14px;color:var(--g);font-size:25px;text-align:right;padding:10px;outline:none;box-shadow:inset 0 0 18px #b8ff3d22,0 0 12px #b8ff3d33}
+#expr{height:23px;color:#c9a7ff;text-align:right;font-size:13px;overflow:hidden;padding-top:5px}
+.mode{display:flex;gap:7px;margin:8px 0}.mode button{height:32px;flex:1;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}button{height:54px;border:1px solid #7139ad;border-radius:11px;background:linear-gradient(145deg,#492075,#241039);color:var(--w);font-size:16px;font-weight:bold;cursor:pointer;box-shadow:0 3px 0 #11081d}button:active{transform:translateY(2px);box-shadow:0 1px 0 #11081d}.num{background:linear-gradient(145deg,#321650,#1b0d2c)}.op{background:linear-gradient(145deg,#a8ed32,#527f08);color:#172000;border-color:#d8ff91}.sci{background:linear-gradient(145deg,#6029a0,#32145d);color:#e2c8ff}.special{background:linear-gradient(145deg,#81236e,#471039);color:#ffb9ef}.clear{background:linear-gradient(145deg,#d52d83,#75154e)}.eq{background:linear-gradient(145deg,#b8ff3d,#659c0d);color:#142000;border-color:#dcff9d;grid-column:span 2}.wide{grid-column:span 2}
+#history{margin-top:12px;max-height:110px;overflow:auto;border-top:1px solid #542583;padding-top:7px;color:#c8b5df;font-size:12px}.hitem{padding:5px;border-bottom:1px solid #25133c;text-align:right}
+@media(max-width:380px){button{height:48px;font-size:14px}.calc{padding:13px}}
+</style>
+</head>
+<body>
+<div class="calc">
+<div class="title">COISO DE NUMERAR</div>
+<input id="display" value="0" readonly>
+<div id="expr"></div>
+<div class="mode"><button id="deg" class="op" onclick="setMode('deg')">DEG</button><button id="rad" onclick="setMode('rad')">RAD</button></div>
+<div class="grid">
+<button class="clear" onclick="clearAll()">AC</button><button class="special" onclick="backspace()">DEL</button><button class="sci" onclick="add('(')">(</button><button class="sci" onclick="add(')')">)</button><button class="op" onclick="add('/')">÷</button>
+<button class="sci" onclick="sqrt()">√</button><button class="sci" onclick="square()">x²</button><button class="sci" onclick="add('**')">xʸ</button><button class="sci" onclick="factorial()">x!</button><button class="op" onclick="add('*')">×</button>
+<button class="sci" onclick="func('sin')">sin</button><button class="sci" onclick="func('cos')">cos</button><button class="sci" onclick="func('tan')">tan</button><button class="sci" onclick="func('log')">log</button><button class="op" onclick="add('-')">−</button>
+<button class="sci" onclick="func('ln')">ln</button><button class="sci" onclick="inverse()">1/x</button><button class="sci" onclick="add('PI')">π</button><button class="sci" onclick="add('E')">e</button><button class="op" onclick="add('+')">+</button>
+<button class="num" onclick="add('7')">7</button><button class="num" onclick="add('8')">8</button><button class="num" onclick="add('9')">9</button><button class="sci" onclick="percent()">%</button><button class="special" onclick="sign()">±</button>
+<button class="num" onclick="add('4')">4</button><button class="num" onclick="add('5')">5</button><button class="num" onclick="add('6')">6</button><button class="sci" onclick="add('/')">a/b</button><button class="sci" onclick="memoryAdd()">M+</button>
+<button class="num" onclick="add('1')">1</button><button class="num" onclick="add('2')">2</button><button class="num" onclick="add('3')">3</button><button class="sci" onclick="memorySub()">M−</button><button class="sci" onclick="memoryRecall()">MR</button>
+<button class="num wide" onclick="add('0')">0</button><button class="num" onclick="add('.')">.</button><button class="sci" onclick="memoryClear()">MC</button><button class="eq" onclick="calculate()">=</button>
+</div>
+<div id="history"></div>
+</div>
+<script>
+const d=document.getElementById("display"),e=document.getElementById("expr"),h=document.getElementById("history");
+let mode="deg",mem=0;
+function add(v){if(d.value==="0"||d.value==="Erro")d.value=v;else d.value+=v}
+function clearAll(){d.value="0";e.textContent=""}
+function backspace(){if(d.value==="Erro"||d.value.length<=1)d.value="0";else d.value=d.value.slice(0,-1)}
+function expression(){return d.value.replace(/π/g,"Math.PI").replace(/\bPI\b/g,"Math.PI").replace(/\be\b/g,"Math.E").replace(/√/g,"Math.sqrt")}
+function value(){return Function('"use strict";return ('+expression()+')')()}
+function fmt(x){if(!Number.isFinite(x))throw Error();if(Math.abs(x)<1e-12)x=0;return Number.isInteger(x)?String(x):Number(x.toPrecision(12)).toString()}
+function calculate(){try{let c=d.value,r=value();e.textContent=c.replaceAll("**","^");d.value=fmt(r);let item=document.createElement("div");item.className="hitem";item.textContent=c.replaceAll("**","^")+" = "+fmt(r);h.prepend(item);while(h.children.length>8)h.lastChild.remove()}catch{d.value="Erro"}}
+function apply(f){try{d.value=fmt(f(value()))}catch{d.value="Erro"}}
+function sqrt(){apply(Math.sqrt)}
+function square(){apply(x=>x**2)}
+function inverse(){apply(x=>1/x)}
+function factorial(){apply(x=>{if(x<0||!Number.isInteger(x)||x>170)throw Error();let r=1;for(let i=2;i<=x;i++)r*=i;return r})}
+function percent(){apply(x=>x/100)}
+function sign(){apply(x=>-x)}
+function func(n){apply(x=>{if(n==="ln")return Math.log(x);if(n==="log")return Math.log10(x);if(mode==="deg")x=x*Math.PI/180;return n==="sin"?Math.sin(x):n==="cos"?Math.cos(x):Math.tan(x)})}
+function setMode(m){mode=m;document.getElementById("deg").classList.toggle("op",m==="deg");document.getElementById("rad").classList.toggle("op",m==="rad")}
+function memoryAdd(){try{mem+=value()}catch{}}
+function memorySub(){try{mem-=value()}catch{}}
+function memoryRecall(){d.value=fmt(mem)}
+function memoryClear(){mem=0}
+document.addEventListener("keydown",ev=>{if(/[0-9.+\-*/()]/.test(ev.key))add(ev.key);else if(ev.key==="Enter")calculate();else if(ev.key==="Backspace")backspace();else if(ev.key==="Escape")clearAll()});
+if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+</script>
+</body>
+</html>
